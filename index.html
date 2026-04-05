@@ -356,7 +356,7 @@ button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
 .tfi-deadline.overdue{color:#e05a5a}
 .tfi-del{font-size:11px;opacity:0;color:var(--color-text-faint);transition:opacity var(--transition)}
 .todo-full-item:hover .tfi-del{opacity:.5}
-.tfi-del:hover{opacity:1!important}
+.tfi-del:hover{opacity:1!important} .todo-full-item.today{background:linear-gradient(135deg,rgba(245,166,35,0.18),rgba(220,120,10,0.10));border-color:rgba(245,166,35,0.5)} .todo-full-item.today:hover{background:linear-gradient(135deg,rgba(245,166,35,0.26),rgba(220,120,10,0.16))} .todo-full-item.overdue{border:1.5px solid #e05a5a;background:rgba(224,90,90,0.10)} .todo-full-item.overdue:hover{background:rgba(224,90,90,0.16)} .tfi-deadline.today{color:#f5a623;font-weight:600} .tfi-overdue-badge{font-size:10px;color:#e05a5a;font-weight:700;margin-left:4px;white-space:nowrap}
 .todo-add-row{display:flex;gap:var(--space-2);margin-top:var(--space-3)}
 .todo-add-row .form-control{flex:1;padding:8px 12px;font-size:var(--text-sm)}
 .todo-add-row .btn{flex-shrink:0}
@@ -1018,12 +1018,12 @@ function renderTodoPage(){
       const isOverdue=!t.done&&t.deadline&&t.deadline<today;
       const dl=t.deadline?new Date(t.deadline+' 12:00').toLocaleDateString('cs-CZ',{day:'numeric',month:'short'}):'';
       const item=document.createElement('div');
-      item.className='todo-full-item'+(t.done?' done':'');
+      const isToday=!t.done&&t.deadline===today;const daysLate=isOverdue?Math.round((new Date(today)-new Date(t.deadline))/86400000):0; item.className='todo-full-item'+(t.done?' done':'')+(isToday?' today':'')+(isOverdue?' overdue':'');
       item.innerHTML=`
         <input type="checkbox" class="tfi-check" ${t.done?'checked':''} onchange="toggleTodo('${t.id}');renderTodoPage();">
         <div class="tfi-info">
           <span class="tfi-text">${t.text}</span>
-          ${dl?`<span class="tfi-deadline${isOverdue?' overdue':''}">${dl}</span>`:''}
+          ${dl?`<span class="tfi-deadline${isToday?' today':''}${isOverdue?' overdue':''}">${isToday?'Dnes':dl}</span>`+(isOverdue?`<span class="tfi-overdue-badge">+${daysLate}d</span>`:''):''}?' overdue':''}">${dl}</span>`:''}
         </div>
         <button class="tfi-del" onclick="deleteTodo('${t.id}');renderTodoPage();" aria-label="Smazat">✕</button>
       `;
