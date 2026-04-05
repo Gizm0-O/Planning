@@ -1023,7 +1023,7 @@ function renderTodoPage(){
         <input type="checkbox" class="tfi-check" ${t.done?'checked':''} onchange="toggleTodo('${t.id}');renderTodoPage();">
         <div class="tfi-info">
           <span class="tfi-text">${t.text}</span>
-          ${dl?`<span class="tfi-deadline${isToday?' today':''}${isOverdue?' overdue':''}">${isToday?'Dnes':dl}</span>`+(isOverdue?`<span class="tfi-overdue-badge">+${daysLate}d</span>`:''):''}?' overdue':''}">${dl}</span>`:''}
+          ${dl?`<span class="tfi-deadline${isToday?' today':''}${isOverdue?' overdue':''}">${isToday?'Dnes':dl}</span>`+(isOverdue?`<span class="tfi-overdue-badge">+${daysLate}d</span>`:''):''}
         </div>
         <button class="tfi-del" onclick="deleteTodo('${t.id}');renderTodoPage();" aria-label="Smazat">✕</button>
       `;
