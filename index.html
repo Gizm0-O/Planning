@@ -1,1 +1,442 @@
-<!DOCTYPE html><html lang="cs" data-theme="dark"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Rodinný Kalendář</title> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet"> <style> :root, [data-theme="light"] { --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9; --color-surface-offset:#f3f0ec;--color-surface-dynamic:#e6e4df; --color-divider:#dcd9d5;--color-border:#d4d1ca; --color-text:#28251d;--color-text-muted:#7a7974;--color-text-faint:#bab9b4; --color-primary:#01696f;--color-primary-hover:#0c4e54; --shadow-sm:0 1px 2px oklch(0.2 0.01 80 / 0.06); --shadow-md:0 4px 12px oklch(0.2 0.01 80 / 0.08); --shadow-lg:0 12px 32px oklch(0.2 0.01 80 / 0.12); --radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;--radius-xl:1rem;--radius-full:9999px; --transition:180ms cubic-bezier(0.16,1,0.3,1); --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem; --font-body:'Inter',sans-serif; --tadas-office-color:#006494;--tadas-office-bg:#18304a;--tadas-office-border:#5591c7; --barca-color:#f07090;--barca-bg:#3d1020;--barca-border:#f07090; --hour-height: 44px; --time-col-width: 50px; --cal-start-hour: 6; --cal-end-hour: 22; } [data-theme="dark"] { --color-bg:#171614;--color-surface:#1c1b19;--color-surface-2:#201f1d; --color-divider:#262523;--color-border:#393836; --color-text:#cdccca;--color-text-muted:#797876;--color-text-faint:#5a5957; --color-primary:#4f98a3;--color-primary-hover:#227f8b; } *,*::before,*::after{box-sizing:border-box;margin:0;padding:0} body{min-height:100dvh;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg);line-height:1.5;overflow-x:hidden} button{cursor:pointer;background:none;border:none;font:inherit;color:inherit} .app{max-width:1400px;margin:0 auto;padding:var(--space-4)} .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)} .btn{display:inline-flex;align-items:center;padding:var(--space-2) var(--space-4);font-size:12px;font-weight:700;border-radius:var(--radius-md);transition:background var(--transition)} .btn-swap{background:linear-gradient(135deg,var(--tadas-office-bg),var(--barca-bg));border:1px solid oklch(from var(--color-text) l c h / 0.1)} .controls-row{display:grid;grid-template-columns:var(--time-col-width) 1fr;margin-bottom:var(--space-3)} .controls-content{grid-column:2;display:flex;align-items:center;justify-content:space-between} .legend{display:flex;gap:var(--space-4);font-size:11px;color:var(--color-text-muted)} .legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:middle} .main-layout{display:grid;grid-template-columns:1fr 280px;gap:var(--space-4);align-items:start} .timeline-outer{display:grid;grid-template-columns:var(--time-col-width) repeat(7, 1fr);min-width:720px} .tl-header-spacer{border-bottom:1px solid var(--color-divider);position:sticky;top:0;z-index:10} .tl-day-header{padding:6px;text-align:center;background:var(--color-surface);border-left:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider);position:sticky;top:0;z-index:10;cursor:pointer} .tl-day-header.selected-for-swap{background:var(--color-surface-dynamic);outline:2px solid var(--color-primary);z-index:11} .tl-body{grid-column:1 / -1;display:grid;grid-template-columns:var(--time-col-width) repeat(7, 1fr);position:relative} .tl-hour-label{position:absolute;right:8px;font-size:11px;color:var(--color-text-faint);transform:translateY(-50%);pointer-events:none} .tl-day-col{position:relative;border-left:1px solid var(--color-divider);min-height:calc(var(--hour-height) * 16)} .tl-hour-line{position:absolute;left:0;right:0;height:1px;background:var(--color-divider)} .tl-now-line{position:absolute;left:0;right:0;height:2px;background:#f5a623;z-index:20;display:flex;align-items:center;pointer-events:none} .tl-now-label{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:800;color:#f5a623;background:var(--color-bg);padding:2px 6px;border-radius:10px;border:1.5px solid #f5a623;z-index:21;font-variant-numeric:tabular-nums;box-shadow:var(--shadow-sm)} .tl-event{position:absolute;left:3px;right:3px;border-radius:var(--radius-sm);border-left:3px solid transparent;padding:4px 6px;overflow:hidden;z-index:2} .shift-tadas-office{background:var(--tadas-office-bg);color:var(--tadas-office-color);border-left-color:var(--tadas-office-border)} .shift-tadas-home{background:var(--tadas-office-bg);opacity:0.85;color:var(--tadas-office-color);border-left-color:var(--tadas-office-border)} .shift-barca{background:var(--barca-bg);color:var(--barca-color);border-left-color:var(--barca-border)} .ev-time{font-size:10px;opacity:.7;display:block} .ev-label{font-size:11px;font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .todo-panel{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-lg);padding:var(--space-3);position:sticky;top:var(--space-4)} .todo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)} .todo-title{font-size:13px;font-weight:700} .todo-list{display:flex;flex-direction:column;gap:4px} .todo-item{display:flex;align-items:center;gap:8px;padding:4px 8px;background:var(--color-surface-offset);border-radius:var(--radius-sm);font-size:12px} .todo-item.done{opacity:0.4;text-decoration:line-through} .todo-text{flex:1;overflow:hidden;text-overflow:ellipsis} .todo-form{display:none;margin-top:8px;gap:4px;flex-direction:column} .todo-form.open{display:flex} .todo-input{width:100%;padding:4px 8px;border-radius:4px;background:var(--color-bg);border:1px solid var(--color-divider);color:inherit;font-size:12px} </style></head><body> <div class="app"> <header class="header"> <div class="logo"><span style="font-weight:800;font-size:18px">Plán</span></div> <div class="header-actions" style="display:flex; gap:12px"> <button class="btn btn-swap" id="swapBtn" onclick="swapSelectedDay()" disabled title="Nejdříve klikni na název dne v kalendáři">Přehodit směny</button> <button onclick="toggleTheme()" id="themeToggle" style="font-size:18px">🌙</button> </div> </header> <div class="controls-row"> <div class="controls-content"> <div class="legend"> <div><span class="legend-dot" style="background:var(--tadas-office-color)"></span>Tadeáš</div> <div><span class="legend-dot" style="background:var(--barca-color)"></span>Barča</div> </div> <div class="week-nav" style="display:flex;align-items:center"> <button onclick="changeWeek(-1)" style="padding:0 10px; font-weight:bold; font-size:20px">‹</button> <span id="weekRangeLabel" style="font-weight:700;font-size:12px;width:140px;text-align:center"></span> <button onclick="changeWeek(1)" style="padding:0 10px; font-weight:bold; font-size:20px">›</button> </div> </div> </div> <div class="main-layout"> <div class="timeline-wrapper"> <div class="timeline-outer" id="timelineOuter"></div> </div> <aside class="todo-panel"> <div class="todo-header"><span class="todo-title">📋 Úkoly</span><button onclick="toggleTodoForm()" style="font-weight:bold; font-size:18px">+</button></div> <div class="todo-form" id="todoForm"> <input type="text" id="todoInput" class="todo-input" placeholder="Nový úkol..."> <button onclick="addTodo()" style="font-size:11px;background:var(--color-primary);color:white;border-radius:4px;padding:6px;font-weight:700">Přidat úkol</button> </div> <div id="todoList" class="todo-list" style="margin-top:12px"></div> <div style="margin-top:24px; padding-top:12px; border-top:1px solid var(--color-divider); font-size:10px; color:var(--color-text-faint)"> Data jsou uložena v tomto prohlížeči. </div> </aside> </div> </div> <script> const START_HOUR = 6, END_HOUR = 22, HOUR_PX = 44, TOTAL_H = (END_HOUR - START_HOUR) * HOUR_PX; let currentWeekOffset = 0, swapSelectedKey = null; const load = (k, d) => { try { return JSON.parse(localStorage.getItem('cal_'+k)) || d; } catch(e) { return d; } }; const save = (k, v) => localStorage.setItem('cal_'+k, JSON.stringify(v)); let swappedDays = load('swapped', {}), todos = load('todos', []); const BASE_SHIFTS = [ {type:'shift-tadas-office', label:'Ranní', from:'07:00', to:'14:00', days:[1,3,5]}, {type:'shift-barca', label:'Ranní', from:'07:00', to:'14:00', days:[2,4]}, {type:'shift-barca', label:'Odpolední', from:'14:00', to:'21:00', days:[1,3,5]}, {type:'shift-tadas-home', label:'Odpolední', from:'14:00', to:'21:00', days:[2,4]} ]; function toggleTheme(){ const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); document.getElementById('themeToggle').textContent = t === 'dark' ? '🌙' : '☀️'; save('theme', t); } if(load('theme', 'dark') === 'light') toggleTheme(); function renderCalendar(){ const outer=document.getElementById('timelineOuter'); outer.innerHTML=''; const today=new Date(); today.setHours(0,0,0,0); const mon=getMonday(today); mon.setDate(mon.getDate()+currentWeekOffset*7); document.getElementById('weekRangeLabel').textContent = mon.toLocaleDateString('cs-CZ',{day:'numeric',month:'short'}) + ' – ' + new Date(mon.getTime()+6*86400000).toLocaleDateString('cs-CZ',{day:'numeric',month:'short'}); outer.appendChild(Object.assign(document.createElement('div'), {className:'tl-header-spacer'})); for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(d.getDate()+i); const key=d.toISOString().split('T')[0]; const hd=document.createElement('div'); hd.className='tl-day-header' + (swapSelectedKey===key?' selected-for-swap':''); hd.innerHTML=`<div style="font-size:9px;opacity:0.5;text-transform:uppercase">${['Ne','Po','Út','St','Čt','Pá','So'][d.getDay()]}</div><div style="font-weight:800;font-size:15px">${d.getDate()}</div>${swappedDays[key]?'<div style="font-size:10px;color:#f5a623">↺</div>':''}`; hd.onclick=()=> { swapSelectedKey=key; document.getElementById('swapBtn').disabled=false; renderCalendar(); }; outer.appendChild(hd); } const body=document.createElement('div'); body.className='tl-body'; body.style.height=TOTAL_H+'px'; outer.appendChild(body); const tCol=document.createElement('div'); tCol.className='tl-time-col'; body.appendChild(tCol); for(let h=START_HOUR;h<=END_HOUR;h++){ const l=document.createElement('div'); l.className='tl-hour-label'; l.style.top=(h-START_HOUR)*HOUR_PX+'px'; l.textContent=h+':00'; tCol.appendChild(l); } for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(d.getDate()+i); const key=d.toISOString().split('T')[0]; const col=document.createElement('div'); col.className='tl-day-col'; col.style.height=TOTAL_H+'px'; body.appendChild(col); for(let h=START_HOUR;h<=END_HOUR;h++){ col.appendChild(Object.assign(document.createElement('div'), {className:'tl-hour-line', style:`top:${(h-START_HOUR)*HOUR_PX}px`})); } if(today.toISOString().split('T')[0]===key){ const n=new Date(); const m=n.getHours()*60+n.getMinutes(); if(m>=START_HOUR*60 && m<=END_HOUR*60){ const nl=document.createElement('div'); nl.className='tl-now-line'; nl.style.top=(((m - START_HOUR*60)/60)*HOUR_PX)+'px'; const lbl=document.createElement('div'); lbl.className='tl-now-label'; lbl.textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0'); nl.appendChild(lbl); col.appendChild(nl); } } BASE_SHIFTS.filter(r=>r.days.includes(d.getDay())).forEach(ev=>{ const start=(ev.from.split(':')[0]*60+(+ev.from.split(':')[1])), end=(ev.to.split(':')[0]*60+(+ev.to.split(':')[1])); let type=ev.type; if(swappedDays[key]){ if(type.includes('tadas')) type='shift-barca'; else if(type==='shift-barca') type='shift-tadas-office'; } const b=document.createElement('div'); b.className='tl-event '+type; b.style.top=(((start-START_HOUR*60)/60)*HOUR_PX)+'px'; b.style.height=(((end-start)/60)*HOUR_PX)+'px'; b.innerHTML=`<span class="ev-time">${ev.from}</span><span class="ev-label">${ev.label}</span>`; col.appendChild(b); }); } } function getMonday(d){ d=new Date(d); const day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1); return new Date(d.setDate(diff)); } function changeWeek(n){ currentWeekOffset+=n; swapSelectedKey=null; document.getElementById('swapBtn').disabled=true; renderCalendar(); } function swapSelectedDay(){ if(swapSelectedKey){ swappedDays[swapSelectedKey]=!swappedDays[swapSelectedKey]; save('swapped', swappedDays); renderCalendar(); } } function renderTodos(){ const list=document.getElementById('todoList'); list.innerHTML=''; todos.forEach(t=>{ const item=document.createElement('div'); item.className='todo-item'+(t.done?' done':''); item.innerHTML=`<input type="checkbox" onchange="toggleTodo(${t.id})" ${t.done?'checked':''}> <span class="todo-text">${t.text}</span> <button onclick="delTodo(${t.id})" style="opacity:0.3">✕</button>`; list.appendChild(item); }); } function toggleTodo(id){ const t=todos.find(x=>x.id===id); if(t) t.done=!t.done; save('todos', todos); renderTodos(); } function delTodo(id){ todos=todos.filter(x=>x.id!==id); save('todos', todos); renderTodos(); } function toggleTodoForm(){ document.getElementById('todoForm').classList.toggle('open'); document.getElementById('todoInput').focus(); } function addTodo(){ const i=document.getElementById('todoInput'); if(i.value){ todos.push({id:Date.now(),text:i.value,done:false}); i.value=''; save('todos', todos); renderTodos(); } } renderCalendar(); renderTodos(); setInterval(renderCalendar, 60000); </script></body></html>
+<!DOCTYPE html>
+<html lang="cs" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rodinný Kalendář</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;
+      --color-surface-offset:#f3f0ec;--color-surface-dynamic:#e6e4df;
+      --color-divider:#dcd9d5;--color-border:#d4d1ca;
+      --color-text:#28251d;--color-text-muted:#7a7974;--color-text-faint:#bab9b4;
+      --color-primary:#01696f;--color-primary-hover:#0c4e54;
+      --shadow-sm:0 1px 2px oklch(0.2 0.01 80 / 0.06);
+      --shadow-md:0 4px 12px oklch(0.2 0.01 80 / 0.08);
+      --shadow-lg:0 12px 32px oklch(0.2 0.01 80 / 0.12);
+      --radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;--radius-xl:1rem;--radius-full:9999px;
+      --transition:180ms cubic-bezier(0.16,1,0.3,1);
+      --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;
+      --font-body:'Inter',sans-serif;
+      --tadas-office-color:#006494;--tadas-office-bg:#18304a;--tadas-office-border:#5591c7;
+      --barca-color:#f07090;--barca-bg:#3d1020;--barca-border:#f07090;
+      --task-color:#4f98a3;--task-bg:#1a2b2e;--task-border:#4f98a3;
+      --hour-height: 44px; --time-col-width: 50px; --cal-start-hour: 6; --cal-end-hour: 22;
+    }
+    [data-theme="dark"] {
+      --color-bg:#171614;--color-surface:#1c1b19;--color-surface-2:#201f1d;
+      --color-divider:#262523;--color-border:#393836;
+      --color-text:#cdccca;--color-text-muted:#797876;--color-text-faint:#5a5957;
+      --color-primary:#4f98a3;--color-primary-hover:#227f8b;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100dvh;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg);line-height:1.5;overflow-x:hidden}
+    button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
+    .app{max-width:1400px;margin:0 auto;padding:var(--space-4)}
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)}
+    .btn{display:inline-flex;align-items:center;padding:var(--space-2) var(--space-4);font-size:12px;font-weight:700;border-radius:var(--radius-md);transition:background var(--transition)}
+    .btn-swap{background:linear-gradient(135deg,var(--tadas-office-bg),var(--barca-bg));border:1px solid oklch(from var(--color-text) l c h / 0.1)}
+    .btn-swap:disabled{opacity:0.5;cursor:not-allowed}
+    .controls-row{display:grid;grid-template-columns:var(--time-col-width) 1fr;margin-bottom:var(--space-3)}
+    .controls-content{grid-column:2;display:flex;align-items:center;justify-content:space-between}
+    .legend{display:flex;gap:var(--space-4);font-size:11px;color:var(--color-text-muted)}
+    .legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:middle}
+    .main-layout{display:grid;grid-template-columns:1fr 280px;gap:var(--space-4);align-items:start}
+    @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } .todo-panel { position: static; } }
+    .timeline-outer{display:grid;grid-template-columns:var(--time-col-width) repeat(7, 1fr);min-width:720px;background:var(--color-surface);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--color-divider)}
+    .tl-header-spacer{border-bottom:1px solid var(--color-divider);background:var(--color-surface-2)}
+    .tl-day-header{padding:10px 6px;text-align:center;background:var(--color-surface-2);border-left:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider);cursor:pointer;transition:background 150ms}
+    .tl-day-header:hover{background:var(--color-surface-offset)}
+    .tl-day-header.selected-for-swap{background:var(--color-surface-dynamic);box-shadow:inset 0 0 0 2px var(--color-primary)}
+    .tl-body{grid-column:1 / -1;display:grid;grid-template-columns:var(--time-col-width) repeat(7, 1fr);position:relative}
+    .tl-hour-label{position:absolute;right:8px;font-size:11px;color:var(--color-text-faint);transform:translateY(-50%);pointer-events:none;font-variant-numeric:tabular-nums}
+    .tl-day-col{position:relative;border-left:1px solid var(--color-divider);min-height:calc(var(--hour-height) * (var(--cal-end-hour) - var(--cal-start-hour)))}
+    .tl-hour-line{position:absolute;left:0;right:0;height:1px;background:var(--color-divider);opacity:0.5}
+    .tl-now-line{position:absolute;left:0;right:0;height:2px;background:#f5a623;z-index:20;display:flex;align-items:center;pointer-events:none}
+    .tl-now-label{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:800;color:#f5a623;background:var(--color-bg);padding:2px 6px;border-radius:var(--radius-full);border:1.5px solid #f5a623;z-index:21;font-variant-numeric:tabular-nums;box-shadow:var(--shadow-sm)}
+    .tl-event{position:absolute;left:4px;right:4px;border-radius:var(--radius-sm);border-left:3px solid transparent;padding:4px 6px;overflow:hidden;z-index:2;box-shadow:var(--shadow-sm);transition:transform 150ms}
+    .tl-event:hover{transform:scale(1.02);z-index:5;cursor:pointer}
+    .shift-tadas-office{background:var(--tadas-office-bg);color:var(--tadas-office-color);border-left-color:var(--tadas-office-border)}
+    .shift-tadas-home{background:var(--tadas-office-bg);opacity:0.9;color:var(--tadas-office-color);border-left-color:var(--tadas-office-border);border-left-style:dashed}
+    .shift-barca{background:var(--barca-bg);color:var(--barca-color);border-left-color:var(--barca-border)}
+    .shift-task{background:var(--task-bg);color:var(--task-color);border-left-color:var(--task-border)}
+    .ev-time{font-size:10px;opacity:.8;display:block;font-weight:600}
+    .ev-label{font-size:11px;font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .todo-panel{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-lg);padding:var(--space-3);position:sticky;top:var(--space-4);max-height:calc(100dvh - 40px);overflow-y:auto}
+    .todo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)}
+    .todo-title{font-size:13px;font-weight:700}
+    .todo-list{display:flex;flex-direction:column;gap:6px}
+    .todo-item{display:flex;flex-direction:column;gap:2px;padding:8px;background:var(--color-surface-offset);border-radius:var(--radius-md);font-size:12px;border:1px solid var(--color-divider);transition:opacity 200ms}
+    .todo-item.done{opacity:0.5}
+    .todo-item.done .todo-text{text-decoration:line-through}
+    .todo-top{display:flex;align-items:center;gap:8px}
+    .todo-text{flex:1;font-weight:600}
+    .todo-meta{font-size:10px;color:var(--color-text-faint);display:flex;justify-content:space-between;align-items:center}
+    .todo-form{display:none;margin-top:8px;gap:8px;flex-direction:column;padding:10px;background:var(--color-surface-2);border-radius:var(--radius-md);border:1px solid var(--color-primary)}
+    .todo-form.open{display:flex}
+    .todo-input{width:100%;padding:6px 10px;border-radius:4px;background:var(--color-bg);border:1px solid var(--color-divider);color:inherit;font-size:12px}
+    /* Modal Styles */
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+    .modal-overlay.open{display:flex}
+    .modal-content{background:var(--color-surface);width:90%;max-width:400px;border-radius:var(--radius-lg);padding:var(--space-4);box-shadow:var(--shadow-lg);border:1px solid var(--color-divider)}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)}
+    .modal-body{display:flex;flex-direction:column;gap:var(--space-3)}
+    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .type-btn{padding:10px;border-radius:var(--radius-md);border:1px solid var(--color-divider);font-size:11px;font-weight:700;text-align:center;transition:all 150ms}
+    .type-btn.active{border-color:var(--color-primary);background:var(--color-surface-dynamic);box-shadow:0 0 0 1px var(--color-primary)}
+    .form-group{display:flex;flex-direction:column;gap:4px}
+    .form-label{font-size:11px;font-weight:700;color:var(--color-text-muted)}
+    .modal-footer{margin-top:var(--space-4);display:flex;gap:12px;justify-content:flex-end}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo"><span style="font-weight:800;font-size:18px;letter-spacing:-0.5px">Rodinný Kalendář</span></div>
+      <div class="header-actions" style="display:flex; gap:12px">
+        <button class="btn btn-swap" id="swapBtn" onclick="swapSelectedDay()" disabled title="Nejdříve klikni na název dne v kalendáři">Přehodit směny</button>
+        <button onclick="toggleTheme()" id="themeToggle" style="font-size:18px">🌙</button>
+      </div>
+    </header>
+
+    <div class="controls-row">
+      <div class="controls-content">
+        <div class="legend">
+          <div><span class="legend-dot" style="background:var(--tadas-office-color)"></span>Tadeáš</div>
+          <div><span class="legend-dot" style="background:var(--barca-color)"></span>Barča</div>
+        </div>
+        <div class="week-nav" style="display:flex;align-items:center;gap:4px">
+          <button onclick="changeWeek(-1)" class="btn" style="padding:4px 8px;font-size:18px">‹</button>
+          <div style="display:flex;flex-direction:column;align-items:center;width:150px">
+            <span id="weekRangeLabel" style="font-weight:800;font-size:13px"></span>
+            <span id="weekNumLabel" style="font-size:10px;color:var(--color-text-faint)"></span>
+          </div>
+          <button onclick="changeWeek(1)" class="btn" style="padding:4px 8px;font-size:18px">›</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <div class="timeline-wrapper" style="overflow-x:auto">
+        <div class="timeline-outer" id="timelineOuter"></div>
+      </div>
+
+      <aside class="todo-panel">
+        <div class="todo-header">
+          <span class="todo-title">📋 Úkoly</span>
+          <button onclick="toggleTodoForm()" class="btn" style="background:var(--color-primary);color:white;padding:4px 10px">+</button>
+        </div>
+        <div class="todo-form" id="todoForm">
+          <div class="form-group">
+            <label class="form-label">Kdo?</label>
+            <select id="todoPerson" class="todo-input">
+              <option value="BARČA">Barča</option>
+              <option value="TADEÁŠ">Tadeáš</option>
+              <option value="SPOLEČNÉ">Společné</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Úkol</label>
+            <input type="text" id="todoInput" class="todo-input" placeholder="Co je potřeba udělat?">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Termín</label>
+            <input type="date" id="todoDate" class="todo-input">
+          </div>
+          <button onclick="addTodo()" style="background:var(--color-primary);color:white;border-radius:4px;padding:8px;font-weight:700;margin-top:4px">Přidat úkol</button>
+        </div>
+        <div id="todoList" class="todo-list" style="margin-top:16px"></div>
+        <div style="margin-top:24px; padding-top:12px; border-top:1px solid var(--color-divider); font-size:10px; color:var(--color-text-faint); text-align:center">
+          Data jsou uložena v tomto prohlížeči.
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Modal for New Event -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle" style="font-size:16px">Nová událost</h3>
+        <button onclick="closeModal()" style="font-size:20px;opacity:0.5">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Typ události</label>
+          <div class="type-grid" id="typeGrid">
+            <button class="type-btn active" data-type="shift-tadas-office">🔵 Tadeáš – Kancelář</button>
+            <button class="type-btn" data-type="shift-tadas-home">🏠 Tadeáš – Home</button>
+            <button class="type-btn" data-type="shift-barca">🔴 Barča – Směna</button>
+            <button class="type-btn" data-type="shift-task">📌 Task / ostatní</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Popis</label>
+          <input type="text" id="eventLabel" class="todo-input" placeholder="Např. Oběd s babičkou">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+          <div class="form-group">
+            <label class="form-label">Od</label>
+            <input type="time" id="eventFrom" class="todo-input" value="08:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Do</label>
+            <input type="time" id="eventTo" class="todo-input" value="10:00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Opakování</label>
+          <select id="eventRepeat" class="todo-input">
+            <option value="once">Jednorázově</option>
+            <option value="weekly">Každý týden (tento den)</option>
+            <option value="workdays">Každý pracovní den (Po–Pá)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeModal()" class="btn" style="opacity:0.6">Zrušit</button>
+        <button onclick="saveEvent()" class="btn" style="background:var(--color-primary);color:white">Přidat</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const START_HOUR = 6, END_HOUR = 22, HOUR_PX = 44, TOTAL_H = (END_HOUR - START_HOUR) * HOUR_PX;
+    let currentWeekOffset = 0, swapSelectedKey = null, activeType = 'shift-tadas-office';
+
+    const load = (k, d) => {
+      try { return JSON.parse(localStorage.getItem('cal_'+k)) || d; } catch(e) { return d; }
+    };
+    const save = (k, v) => localStorage.setItem('cal_'+k, JSON.stringify(v));
+
+    let swappedDays = load('swapped', {}), 
+        todos = load('todos', []),
+        customEvents = load('events', []);
+
+    const BASE_SHIFTS = [
+      {type:'shift-tadas-office', label:'Ranní směna', from:'07:00', to:'14:00', days:[1,3,5]},
+      {type:'shift-barca', label:'Ranní směna', from:'07:00', to:'14:00', days:[2,4]},
+      {type:'shift-barca', label:'Odpolední směna', from:'14:00', to:'21:00', days:[1,3,5]},
+      {type:'shift-tadas-home', label:'Odpolední směna', from:'14:00', to:'21:00', days:[2,4]}
+    ];
+
+    function toggleTheme(){
+      const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      document.getElementById('themeToggle').textContent = t === 'dark' ? '🌙' : '☀️';
+      save('theme', t);
+    }
+    if(load('theme', 'dark') === 'light') toggleTheme();
+
+    function getMonday(d){
+      d = new Date(d);
+      const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      return new Date(d.setDate(diff));
+    }
+
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+    }
+
+    function renderCalendar(){
+      const outer = document.getElementById('timelineOuter');
+      outer.innerHTML = '';
+      const today = new Date(); today.setHours(0,0,0,0);
+      const mon = getMonday(today);
+      mon.setDate(mon.getDate() + currentWeekOffset * 7);
+
+      document.getElementById('weekRangeLabel').textContent = 
+        mon.toLocaleDateString('cs-CZ',{day:'numeric',month:'short'}) + ' – ' + 
+        new Date(mon.getTime() + 6*86400000).toLocaleDateString('cs-CZ',{day:'numeric',month:'short'});
+      document.getElementById('weekNumLabel').textContent = 'Týden ' + getWeekNumber(mon);
+
+      outer.appendChild(Object.assign(document.createElement('div'), {className:'tl-header-spacer'}));
+      for(let i=0; i<7; i++){
+        const d = new Date(mon); d.setDate(d.getDate()+i);
+        const key = d.toISOString().split('T')[0];
+        const hd = document.createElement('div');
+        hd.className = 'tl-day-header' + (swapSelectedKey===key ? ' selected-for-swap' : '');
+        hd.innerHTML = `<div style="font-size:9px;opacity:0.5;text-transform:uppercase">${['Ne','Po','Út','St','Čt','Pá','So'][d.getDay()]}</div>
+                        <div style="font-weight:800;font-size:15px">${d.getDate()}</div>
+                        ${swappedDays[key] ? '<div style="font-size:10px;color:#f5a623">↺</div>' : ''}`;
+        hd.onclick = () => { swapSelectedKey = (swapSelectedKey === key ? null : key); document.getElementById('swapBtn').disabled = !swapSelectedKey; renderCalendar(); };
+        outer.appendChild(hd);
+      }
+
+      const body = document.createElement('div');
+      body.className = 'tl-body';
+      body.style.height = TOTAL_H + 'px';
+      outer.appendChild(body);
+
+      const tCol = document.createElement('div');
+      tCol.className = 'tl-time-col';
+      body.appendChild(tCol);
+      for(let h=START_HOUR; h<=END_HOUR; h++){
+        const l = document.createElement('div');
+        l.className = 'tl-hour-label';
+        l.style.top = (h - START_HOUR) * HOUR_PX + 'px';
+        l.textContent = h + ':00';
+        tCol.appendChild(l);
+      }
+
+      for(let i=0; i<7; i++){
+        const d = new Date(mon); d.setDate(d.getDate()+i);
+        const dayIdx = d.getDay();
+        const key = d.toISOString().split('T')[0];
+        const col = document.createElement('div');
+        col.className = 'tl-day-col';
+        col.style.height = TOTAL_H + 'px';
+        body.appendChild(col);
+        
+        for(let h=START_HOUR; h<=END_HOUR; h++){
+          col.appendChild(Object.assign(document.createElement('div'), {className:'tl-hour-line', style:`top:${(h-START_HOUR)*HOUR_PX}px`}));
+        }
+
+        if(today.toISOString().split('T')[0] === key){
+          const n = new Date(); const m = n.getHours()*60 + n.getMinutes();
+          if(m >= START_HOUR*60 && m <= END_HOUR*60){
+            const nl = document.createElement('div'); nl.className = 'tl-now-line';
+            nl.style.top = (((m - START_HOUR*60)/60)*HOUR_PX) + 'px';
+            const lbl = document.createElement('div'); lbl.className = 'tl-now-label';
+            lbl.textContent = n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
+            nl.appendChild(lbl); col.appendChild(nl);
+          }
+        }
+
+        // Base Shifts
+        BASE_SHIFTS.filter(r => r.days.includes(dayIdx)).forEach(ev => {
+          let type = ev.type;
+          if(swappedDays[key]){
+            if(type.includes('tadas')) type = 'shift-barca';
+            else if(type === 'shift-barca') type = (ev.label.includes('Ranní') ? 'shift-tadas-office' : 'shift-tadas-home');
+          }
+          renderEvent(col, ev.label, ev.from, ev.to, type);
+        });
+
+        // Custom Events
+        customEvents.forEach(ev => {
+          let match = false;
+          if(ev.repeat === 'once' && ev.date === key) match = true;
+          else if(ev.repeat === 'weekly' && ev.day === dayIdx) match = true;
+          else if(ev.repeat === 'workdays' && dayIdx >= 1 && dayIdx <= 5) match = true;
+          
+          if(match) renderEvent(col, ev.label, ev.from, ev.to, ev.type, ev.id);
+        });
+
+        // Click to add
+        col.onclick = (e) => {
+          if(e.target !== col) return;
+          const rect = col.getBoundingClientRect();
+          const y = e.clientY - rect.top;
+          const hour = Math.floor(y / HOUR_PX) + START_HOUR;
+          openModal(key, hour);
+        };
+      }
+    }
+
+    function renderEvent(parent, label, from, to, type, id=null){
+      const start = (from.split(':')[0]*60 + (+from.split(':')[1])),
+            end = (to.split(':')[0]*60 + (+to.split(':')[1]));
+      if(start < START_HOUR*60 || start > END_HOUR*60) return;
+      
+      const b = document.createElement('div');
+      b.className = 'tl-event ' + type;
+      b.style.top = (((start - START_HOUR*60)/60)*HOUR_PX) + 'px';
+      b.style.height = (((end - start)/60)*HOUR_PX) + 'px';
+      b.innerHTML = `<span class="ev-time">${from}–${to}</span><span class="ev-label">${label}</span>`;
+      if(id) {
+        b.title = "Klikni pro smazání";
+        b.onclick = (e) => { e.stopPropagation(); if(confirm('Smazat tuto událost?')){ customEvents = customEvents.filter(x => x.id !== id); save('events', customEvents); renderCalendar(); } };
+      }
+      parent.appendChild(b);
+    }
+
+    function changeWeek(n){ currentWeekOffset += n; swapSelectedKey = null; document.getElementById('swapBtn').disabled = true; renderCalendar(); }
+    function swapSelectedDay(){ if(swapSelectedKey){ swappedDays[swapSelectedKey] = !swappedDays[swapSelectedKey]; save('swapped', swappedDays); renderCalendar(); } }
+
+    function renderTodos(){
+      const list = document.getElementById('todoList');
+      list.innerHTML = '';
+      todos.sort((a,b) => (a.done === b.done ? 0 : a.done ? 1 : -1)).forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'todo-item' + (t.done ? ' done' : '');
+        item.innerHTML = `
+          <div class="todo-top">
+            <input type="checkbox" onchange="toggleTodo(${t.id})" ${t.done ? 'checked' : ''}>
+            <span class="todo-text">${t.text}</span>
+            <button onclick="delTodo(${t.id})" style="opacity:0.3">✕</button>
+          </div>
+          <div class="todo-meta">
+            <span>👤 ${t.person || 'Společné'}</span>
+            <span>📅 ${t.date ? new Date(t.date).toLocaleDateString('cs-CZ') : 'Bez termínu'}</span>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+    function toggleTodo(id){ const t = todos.find(x => x.id === id); if(t) t.done = !t.done; save('todos', todos); renderTodos(); }
+    function delTodo(id){ todos = todos.filter(x => x.id !== id); save('todos', todos); renderTodos(); }
+    function toggleTodoForm(){ document.getElementById('todoForm').classList.toggle('open'); }
+    function addTodo(){
+      const txt = document.getElementById('todoInput').value,
+            per = document.getElementById('todoPerson').value,
+            dat = document.getElementById('todoDate').value;
+      if(txt){
+        todos.push({id:Date.now(), text:txt, person:per, date:dat, done:false});
+        document.getElementById('todoInput').value = '';
+        save('todos', todos); renderTodos();
+      }
+    }
+
+    // Modal logic
+    let modalDate = '';
+    function openModal(date, hour){
+      modalDate = date;
+      document.getElementById('eventFrom').value = hour.toString().padStart(2,'0') + ':00';
+      document.getElementById('eventTo').value = (hour+1).toString().padStart(2,'0') + ':00';
+      document.getElementById('modalOverlay').classList.add('open');
+      document.getElementById('eventLabel').focus();
+    }
+    function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+    
+    document.getElementById('typeGrid').onclick = (e) => {
+      if(e.target.classList.contains('type-btn')){
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        activeType = e.target.dataset.type;
+      }
+    };
+
+    function saveEvent(){
+      const label = document.getElementById('eventLabel').value || 'Bez názvu';
+      const from = document.getElementById('eventFrom').value;
+      const to = document.getElementById('eventTo').value;
+      const repeat = document.getElementById('eventRepeat').value;
+      const d = new Date(modalDate);
+      
+      customEvents.push({
+        id: Date.now(),
+        label, from, to, repeat,
+        type: activeType,
+        date: modalDate,
+        day: d.getDay()
+      });
+      
+      save('events', customEvents);
+      closeModal();
+      document.getElementById('eventLabel').value = '';
+      renderCalendar();
+    }
+
+    renderCalendar();
+    renderTodos();
+    setInterval(renderCalendar, 60000);
+  </script>
+</body>
+</html>
