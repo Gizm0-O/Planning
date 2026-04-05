@@ -387,7 +387,7 @@ button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
 <div class="app">
 
   <!-- TOP NAV -->
-  <nav class="top-nav" role="navigation" aria-label="Navigace">
+  <nav class="390" role="navigation" aria-label="Navigace">
     <button class="nav-btn active" onclick="switchPage('calendar')" id="navCalendar">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
       Kalendář
@@ -982,7 +982,127 @@ function saveTodo(){
 }
 document.getElementById('todoText').addEventListener('keydown',e=>{ if(e.key==='Enter') saveTodo(); });
 renderTodos();
+  // ===== PAGE NAVIGATION =====
+function switchPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const pageEl = document.getElementById('page'+page.charAt(0).toUpperCase()+page.slice(1));
+  if(pageEl) pageEl.classList.add('active');
+  const navEl = document.getElementById('nav'+page.charAt(0).toUpperCase()+page.slice(1));
+  if(navEl) navEl.classList.add('active');
+  if(page==='todo') renderTodoPage();
+  if(page==='shopping') renderShopping();
+}
+  // ===== TODO FULL PAGE =====
+let shoppingItems = [
+  {id:'s1',cat:'Potraviny',text:'Mléko',qty:'2l',bought:false},
+  {id:'s2',cat:'Potraviny',text:'Chléb',qty:'1ks',bought:false},
+  {id:'s3',cat:'Potraviny',text:'Vejce',qty:'10ks',bought:false},
+  {id:'s4',cat:'Drogerie',text:'Šampón',qty:'1ks',bought:false},
+  {id:'s5',cat:'Drogerie',text:'Mýdlo',qty:'2ks',bought:false},
+];
+let shopId = 10;
+
+function renderTodoPage(){
+  ['Tadas','Barca'].forEach(p=>{
+    const person = p.toLowerCase();
+    const el = document.getElementById('todoFull'+p);
+    if(!el) return;
+    el.innerHTML='';
+    const filtered = todos.filter(t=>t.person===person);
+    const sorted = [...filtered].sort((a,b)=>{
+      if(a.done!==b.done) return a.done?1:-1;
+      return (a.deadline||'9999').localeCompare(b.deadline||'9999');
+    });
+    sorted.forEach(t=>{
+      const today=new Date().toISOString().split('T')[0];
+      const isOverdue=!t.done&&t.deadline&&t.deadline<today;
+      const dl=t.deadline?new Date(t.deadline+' 12:00').toLocaleDateString('cs-CZ',{day:'numeric',month:'short'}):'';
+      const item=document.createElement('div');
+      item.className='todo-full-item'+(t.done?' done':'');
+      item.innerHTML=`
+        <input type="checkbox" class="tfi-check" ${t.done?'checked':''} onchange="toggleTodo('${t.id}');renderTodoPage();">
+        <div class="tfi-info">
+          <span class="tfi-text">${t.text}</span>
+          ${dl?`<span class="tfi-deadline${isOverdue?' overdue':''}">${dl}</span>`:''}
+        </div>
+        <button class="tfi-del" onclick="deleteTodo('${t.id}');renderTodoPage();" aria-label="Smazat">✕</button>
+      `;
+      el.appendChild(item);
+    });
+  });
+}
+
+function addTodoFull(person){
+  const inputEl = document.getElementById('todoAdd'+person.charAt(0).toUpperCase()+person.slice(1));
+  const dateEl = document.getElementById('todoDate'+person.charAt(0).toUpperCase()+person.slice(1));
+  if(!inputEl) return;
+  const text = inputEl.value.trim();
+  if(!text) return;
+  todos.push({id:'t'+todoId++, person, text, deadline:dateEl?dateEl.value:'', done:false});
+  inputEl.value='';
+  if(dateEl) dateEl.value='';
+  renderTodoPage();
+  renderTodos();
+}
+
+// ===== SHOPPING PAGE =====
+function renderShopping(){
+  const layout = document.getElementById('shoppingLayout');
+  if(!layout) return;
+  const cats = [...new Set(shoppingItems.map(i=>i.cat))];
+  layout.innerHTML='';
+  cats.forEach(cat=>{
+    const items = shoppingItems.filter(i=>i.cat===cat);
+    const bought = items.filter(i=>i.bought).length;
+    const pct = items.length?Math.round(bought/items.length*100):0;
+    const sec = document.createElement('div');
+    sec.className='shop-category';
+    sec.innerHTML=`
+      <div class="shop-cat-title">${cat}<span style="font-weight:400;font-size:var(--text-xs);color:var(--color-text-faint)">${bought}/${items.length}</span></div>
+      <div class="shop-progress-bar"><div class="shop-progress-fill" style="width:${pct}%"></div></div>
+    `;
+    items.forEach(item=>{
+      const row = document.createElement('div');
+      row.className='shop-item'+(item.bought?' bought':'');
+      row.innerHTML=`
+        <input type="checkbox" class="si-check" ${item.bought?'checked':''} onchange="toggleShopItem('${item.id}')">
+        <span class="si-text">${item.text}</span>
+        ${item.qty?`<span class="si-qty">${item.qty}</span>`:''}
+        <button class="si-del" onclick="deleteShopItem('${item.id}')" aria-label="Smazat">✕</button>
+      `;
+      sec.appendChild(row);
+    });
+    const addRow = document.createElement('div');
+    addRow.className='shop-add-row';
+    addRow.innerHTML=`
+      <input type="text" class="form-control" placeholder="Přidat položku…" id="shopInput_${cat.replace(/\s/g,'_')}">
+      <button class="btn btn-primary" onclick="addShopItem('${cat}','shopInput_${cat.replace(/\s/g,'_')}')">Přidat</button>
+    `;
+    sec.appendChild(addRow);
+    layout.appendChild(sec);
+  });
+}
+
+function toggleShopItem(id){
+  const i=shoppingItems.find(x=>x.id===id);
+  if(i) i.bought=!i.bought;
+  renderShopping();
+}
+function deleteShopItem(id){
+  shoppingItems=shoppingItems.filter(x=>x.id!==id);
+  renderShopping();
+}
+function addShopItem(cat, inputId){
+  const el=document.getElementById(inputId);
+  if(!el||!el.value.trim()) return;
+  shoppingItems.push({id:'s'+shopId++,cat,text:el.value.trim(),qty:'',bought:false});
+  el.value='';
+  renderShopping();
+}
 
 </script>
+  </body>
+</html>
 </body>
 </html>
