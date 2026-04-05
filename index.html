@@ -213,9 +213,7 @@ button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
 }
 .tl-now-label{
   position:absolute;
-  right:4px;
-  top:50%;
-  transform:translateY(-50%);
+  /* will be placed on the time axis via JS */
   font-size:10px;
   font-weight:700;
   color:#f5a623;
@@ -227,6 +225,7 @@ button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
   white-space:nowrap;
   line-height:1.4;
   pointer-events:none;
+  z-index:6;
 }
 
 /* ===== EVENT BLOCKS ===== */
@@ -614,10 +613,25 @@ function renderCalendar(){
     lbl.textContent=h+':00';
     timeCol.appendChild(lbl);
   }
+  // Now-time label on time axis
+  const nowForLabel = new Date();
+  const nowMinLabel = nowForLabel.getHours()*60+nowForLabel.getMinutes();
+  if(nowMinLabel>=START_HOUR*60 && nowMinLabel<=END_HOUR*60){
+    const axisLabel = document.createElement('div');
+    axisLabel.className='tl-now-label';
+    axisLabel.style.position='absolute';
+    axisLabel.style.right='2px';
+    axisLabel.style.top=minutesToPx(nowMinLabel)+'px';
+    axisLabel.style.transform='translateY(-50%)';
+    const hh=String(nowForLabel.getHours()).padStart(2,'0');
+    const mm=String(nowForLabel.getMinutes()).padStart(2,'0');
+    axisLabel.textContent=hh+':'+mm;
+    timeCol.appendChild(axisLabel);
+  }
   body.appendChild(timeCol);
 
   // Day columns
-  days.forEach(day=>{
+  days.forEach((day,dayIndex)=>{
     const dow=day.getDay();
     const key=dateKey(day);
     const isWeekend=dow===0||dow===6;
@@ -654,14 +668,7 @@ function renderCalendar(){
           dot.className='tl-now-dot';
           nowLine.appendChild(dot);
         }
-        if(dayIndex===6){
-          const lbl=document.createElement('div');
-          lbl.className='tl-now-label';
-          const h=String(now.getHours()).padStart(2,'0');
-          const m=String(now.getMinutes()).padStart(2,'0');
-          lbl.textContent=h+':'+m;
-          nowLine.appendChild(lbl);
-        }
+
         col.appendChild(nowLine);
       }
     }
